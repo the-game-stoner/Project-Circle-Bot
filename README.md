@@ -2,10 +2,10 @@
 A simple Discord bot for Project Zomboid servers, providing join/leave notifications, server status updates, and player count tracking.
 
 ## Features
-✅ Automatic join/leave notifications in a specified Discord channel.
-✅ Regularly updated server status embed (player count, connection info, uptime).
-✅ Slash commands for manual checks and configuration.
-✅ Runs inside the PZ server container for easy setup.
+- Automatic join/leave notifications in a specified Discord channel.
+- Regularly updated server status embed (player count, connection info, uptime).
+- Slash commands for manual checks and configuration.
+- Runs inside the PZ server container for easy setup.
 
 ## Installation
 ### 1. Clone the Repository
