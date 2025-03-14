@@ -9,3 +9,5 @@ __pycache__/
 *.pyo
 
 config/config.json
+
+config/.env
