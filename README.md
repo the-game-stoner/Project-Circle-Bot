@@ -10,12 +10,12 @@ A simple Discord bot for Project Zomboid servers, providing join/leave notificat
 ## Installation
 ### 1. Clone the Repository
 On your PZ server, navigate to the working directory and clone the bot:
-git clone https://github.com/YOUR_GITHUB_USERNAME/Project-Circle-Bot.git
-cd Project-Circle-Bot
+- git clone https://github.com/YOUR_GITHUB_USERNAME/Project-Circle-Bot.git
+- cd Project-Circle-Bot
 
 ### 2. Configure the Bot
 2.1 Copy the example config file:
-cp config/.env.example config/.env
+- cp config/.env.example config/.env
 
 2.2 Open config/.env and update it with your Discord Bot Token and server details.
 DISCORD_BOT_TOKEN=your-bot-token-here
@@ -24,7 +24,7 @@ SERVER_PORT=your-server-port
 
 ### 3. Install Dependencies
 Make sure Python 3.9+ is installed, then run:
-pip install -r requirements.txt
+- pip install -r requirements.txt
 
 ### 4. Start the Bot
 Run the bot manually to test it:
