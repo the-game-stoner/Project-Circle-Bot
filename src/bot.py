@@ -1,62 +1,106 @@
-
 import discord
-import asyncio
-import os
+from discord.ext import commands, tasks
+import aiohttp
 import json
-from datetime import datetime
-from discord.ext import commands
+import os
+from dotenv import load_dotenv
 
-# Load bot token from config
-CONFIG_PATH = "config/config.json"
+# Load bot token from .env
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-if not os.path.exists(CONFIG_PATH):
-    print(f"Config file not found at {CONFIG_PATH}. Please create it.")
-    exit(1)
-
-with open(CONFIG_PATH, "r") as config_file:
-    config = json.load(config_file)
-
-TOKEN = config.get("bot_token")
-
-# Bot setup
+# Intents (for member tracking)
 intents = discord.Intents.default()
-intents.messages = True
+intents.members = True
 intents.guilds = True
-intents.members = True  # Required for tracking joins/leaves
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Event: Bot Ready
-@bot.event
-async def on_ready():
-    print(f"{bot.user.name} is online!")
-    await bot.change_presence(activity=discord.Game("Monitoring PZ Server"))
+# Configurable settings
+config = {
+    "log_channel": None,  # Channel for join/leave messages
+    "status_channel": None,  # Channel for status embed
+    "server_ip": "YOUR_SERVER_IP",
+    "server_port": "YOUR_SERVER_PORT",
+    "update_interval": 60  # Time in seconds between status updates
+}
 
-# Event: Player Joins Server (Simulated)
+# Load saved settings if exists
+if os.path.exists("config/config.json"):
+    with open("config/config.json", "r") as f:
+        config.update(json.load(f))
+
+# --- SLASH COMMAND: SET LOG CHANNEL ---
+@bot.tree.command(name="setlogchannel", description="Set the channel for player join/leave messages")
+async def set_log_channel(interaction: discord.Interaction):
+    config["log_channel"] = interaction.channel.id
+    with open("config/config.json", "w") as f:
+        json.dump(config, f)
+    await interaction.response.send_message(f"Log channel set to {interaction.channel.mention} ✅", ephemeral=True)
+
+# --- SLASH COMMAND: ADD STATUS EMBED ---
+@bot.tree.command(name="statusadd", description="Add the server status embed to this channel")
+async def add_status(interaction: discord.Interaction):
+    config["status_channel"] = interaction.channel.id
+    with open("config/config.json", "w") as f:
+        json.dump(config, f)
+    
+    embed = discord.Embed(title="🌍 Project Zomboid Server Status", color=discord.Color.green())
+    embed.add_field(name="Server IP", value=config["server_ip"], inline=True)
+    embed.add_field(name="Port", value=config["server_port"], inline=True)
+    embed.add_field(name="Players Online", value="Fetching...", inline=False)
+    
+    message = await interaction.channel.send(embed=embed)
+    config["status_message"] = message.id  # Store message ID for updates
+    await interaction.response.send_message("Status embed added ✅", ephemeral=True)
+
+# --- TASK: UPDATE STATUS EMBED ---
+@tasks.loop(seconds=config["update_interval"])
+async def update_status():
+    if not config["status_channel"]:
+        return
+    
+    channel = bot.get_channel(config["status_channel"])
+    if not channel:
+        return
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"http://{config['server_ip']}:{config['server_port']}/players") as resp:
+                data = await resp.json()
+                players_online = len(data)
+
+        embed = discord.Embed(title="🌍 Project Zomboid Server Status", color=discord.Color.green())
+        embed.add_field(name="Server IP", value=config["server_ip"], inline=True)
+        embed.add_field(name="Port", value=config["server_port"], inline=True)
+        embed.add_field(name="Players Online", value=str(players_online), inline=False)
+
+        message = await channel.fetch_message(config["status_message"])
+        await message.edit(embed=embed)
+
+    except Exception as e:
+        print(f"Error updating status: {e}")
+
+# --- EVENTS: PLAYER JOIN / LEAVE ---
 @bot.event
 async def on_member_join(member):
-    channel = discord.utils.get(member.guild.text_channels, name="server-log")
-    if channel:
-        await channel.send(f"🔹 **{member.name}** has joined the server!")
+    if config["log_channel"]:
+        channel = bot.get_channel(config["log_channel"])
+        if channel:
+            await channel.send(f"✅ **{member.display_name}** has joined the server!")
 
-# Event: Player Leaves Server (Simulated)
 @bot.event
 async def on_member_remove(member):
-    channel = discord.utils.get(member.guild.text_channels, name="server-log")
-    if channel:
-        await channel.send(f"❌ **{member.name}** has left the server!")
+    if config["log_channel"]:
+        channel = bot.get_channel(config["log_channel"])
+        if channel:
+            await channel.send(f"❌ **{member.display_name}** has left the server.")
 
-# Command: Server Status
-@bot.command(name="status")
-async def server_status(ctx):
-    uptime = datetime.now() - bot.start_time
-    embed = discord.Embed(
-        title="📊 Server Status",
-        description=f"**Uptime:** {uptime}",
-        color=discord.Color.green()
-    )
-    await ctx.send(embed=embed)
+# --- BOT STARTUP ---
+@bot.event
+async def on_ready():
+    print(f"{bot.user} is online!")
+    await bot.tree.sync()  # Sync slash commands
+    update_status.start()  # Start status updates
 
-# Start bot
-bot.start_time = datetime.now()
-bot.run(TOKEN)
+bot.run(BOT_TOKEN)
