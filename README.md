@@ -18,9 +18,9 @@ On your PZ server, navigate to the working directory and clone the bot:
 - cp config/.env.example config/.env
 
 2.2 Open config/.env and update it with your Discord Bot Token and server details.
-DISCORD_BOT_TOKEN=your-bot-token-here
-SERVER_IP=your-server-ip
-SERVER_PORT=your-server-port
+- DISCORD_BOT_TOKEN=your-bot-token-here
+- SERVER_IP=your-server-ip
+- SERVER_PORT=your-server-port
 
 ### 3. Install Dependencies
 Make sure Python 3.9+ is installed, then run:
@@ -46,10 +46,10 @@ This ensures the bot starts every time the PZ server starts.
 
 ## Commands
 Command &	Description
-/status	Show current server status & player count
-/setstatuschannel	Set which channel gets the auto-updating server embed
-/setlogchannel	Set which channel receives join/leave logs
-/help	Show available commands
+- /status	Show current server status & player count
+- /setstatuschannel	Set which channel gets the auto-updating server embed
+- /setlogchannel	Set which channel receives join/leave logs
+- /help	Show available commands
 
 ## Troubleshooting
 ### Bot isn’t coming online?
