@@ -1,4 +1,4 @@
-# Project Circle Bot
+# Project Circle Bot (WIP)
 A simple Discord bot for Project Zomboid servers, providing join/leave notifications, server status updates, and player count tracking.
 
 ## Features
