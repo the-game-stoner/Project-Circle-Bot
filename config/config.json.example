@@ -1,7 +1,0 @@
-{
-    "log_channel": null,
-    "status_channel": null,
-    "server_ip": "YOUR_SERVER_IP",
-    "server_port": "YOUR_SERVER_PORT",
-    "update_interval": 60
-}
